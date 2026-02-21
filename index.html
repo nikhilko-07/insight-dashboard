@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Insight.IO | Mission Control</title>
+    <title>Insight.IO | Remote Control Car</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -22,7 +22,7 @@
                 <span class="separator">|</span>
                 <span class="strong">Strong</span>
                 <span class="separator">|</span>
-                <span class="failsafe">Faisable</span>
+                <span class="failsafe">Failsafe</span>
                 <span class="ok-badge">Okay</span>
                 <span class="separator">|</span>
                 <span class="system">System</span>
@@ -40,42 +40,38 @@
                 </div>
             </div>
 
-            <!-- Center Panel - View Container (Switches between Camera and Map) -->
-            <div class="center-panel">
-                <!-- View Toggle Buttons -->
-                <div class="view-toggle">
-                    <button class="toggle-btn active" id="mapViewBtn">
-                        <i class="fas fa-map"></i> Map View
-                    </button>
-                    <button class="toggle-btn" id="cameraViewBtn">
-                        <i class="fas fa-camera"></i> Camera View
-                    </button>
+            <!-- Center Panel - Views Container -->
+            <div class="center-panel" id="centerPanel">
+                <!-- Main View (बड़ा) - Default Map -->
+                <div class="view-main" id="viewMain">
+                    <div class="view-header">
+                        <span id="mainTitle"><i class="fas fa-map"></i> Map View</span>
+                        <span class="view-badge" id="mainBadge">MAIN</span>
+                    </div>
+                    <div id="mainCanvas" class="view-content"></div>
                 </div>
 
-                <!-- Map View (Default) -->
-                <div class="view-container map-view active" id="mapView">
-                    <div class="view-header">Map View</div>
-                    <div id="pointCloudCanvas" class="view-canvas"></div>
-                </div>
-
-                <!-- Camera View (Hidden by default) -->
-                <div class="view-container camera-view" id="cameraView">
-                    <div class="view-header">Camera View</div>
-                    <div class="camera-container">
+                <!-- Pip View (छोटा) - Default Camera -->
+                <div class="view-pip" id="viewPip">
+                    <div class="pip-header">
+                        <span id="pipTitle"><i class="fas fa-video"></i> Camera View</span>
+                        <span class="live-badge">LIVE</span>
+                    </div>
+                    <div class="pip-content">
                         <video id="cameraFeed" autoplay playsinline></video>
-                        <div class="camera-placeholder" id="cameraPlaceholder">
+                        <div class="pip-placeholder" id="cameraPlaceholder">
                             <i class="fas fa-camera"></i>
-                            <p>Camera feed initializing...</p>
+                            <span>Camera starting...</span>
                         </div>
-                        <div class="camera-overlay">
+                        <div class="pip-overlay">
                             <span class="recording-dot"></span>
-                            <span class="live-text">LIVE</span>
+                            <span class="pip-time" id="cameraTime"></span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Right Panel - MODE and Controls -->
+            <!-- Right Panel - Controls -->
             <div class="right-panel">
                 <!-- MODE Section -->
                 <div class="mode-section">
@@ -86,20 +82,53 @@
                     </div>
                 </div>
 
-                <!-- Action Buttons -->
-                <div class="action-buttons">
-                    <button class="action-btn initiate" id="initiateBtn">INITIATE</button>
-                    <button class="action-btn stop" id="stopBtn">STOP</button>
+                <!-- Drive Controls -->
+                <div class="drive-controls">
+                    <div class="control-row">
+                        <button class="control-btn" id="forwardBtn">
+                            <i class="fas fa-arrow-up"></i>
+                        </button>
+                    </div>
+                    <div class="control-row">
+                        <button class="control-btn" id="leftBtn">
+                            <i class="fas fa-arrow-left"></i>
+                        </button>
+                        <button class="control-btn stop-btn" id="stopBtn">STOP</button>
+                        <button class="control-btn" id="rightBtn">
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                    <div class="control-row">
+                        <button class="control-btn" id="backwardBtn">
+                            <i class="fas fa-arrow-down"></i>
+                        </button>
+                    </div>
                 </div>
 
-                <!-- Additional Camera Controls (visible only in camera mode) -->
-                <div class="camera-controls" id="cameraControls" style="display: none;">
-                    <button class="camera-control-btn" id="takeSnapshotBtn">
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button class="action-btn initiate" id="initiateBtn">
+                        <i class="fas fa-play"></i> INITIATE
+                    </button>
+                    <button class="action-btn emergency" id="emergencyBtn">
+                        <i class="fas fa-exclamation-triangle"></i> EMERGENCY
+                    </button>
+                </div>
+
+                <!-- Camera Controls -->
+                <div class="camera-controls">
+                    <button class="camera-btn" id="snapshotBtn">
                         <i class="fas fa-camera"></i> Snapshot
                     </button>
-                    <button class="camera-control-btn" id="toggleCameraBtn">
-                        <i class="fas fa-sync"></i> Switch Camera
+                    <button class="camera-btn" id="toggleCameraBtn">
+                        <i class="fas fa-sync"></i> Switch Cam
                     </button>
+                </div>
+
+                <!-- Swap Hint -->
+                <div class="swap-hint">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span>Click on any view to swap</span>
                 </div>
             </div>
         </div>

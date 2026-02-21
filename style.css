@@ -2,7 +2,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Segoe UI', 'Arial', sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 body {
@@ -15,42 +15,43 @@ body {
 }
 
 .dashboard {
-    width: 1400px;
+    width: 1600px;
     max-width: 100%;
     background-color: #0f1219;
-    border-radius: 12px;
+    border-radius: 16px;
     padding: 20px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
 }
 
 /* Status Bar */
 .status-bar {
-    background-color: #1a1e2a;
-    padding: 12px 20px;
-    border-radius: 8px;
+    background: linear-gradient(135deg, #1a1e2a 0%, #222836 100%);
+    padding: 15px 25px;
+    border-radius: 12px;
     margin-bottom: 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     color: #e0e0e0;
     font-size: 14px;
-    border: 1px solid #2a2f3a;
+    border: 1px solid #334155;
 }
 
 .status-left .mission-name {
     color: #4a9eff;
-    font-weight: 500;
+    font-weight: 600;
+    font-size: 16px;
 }
 
 .status-right {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 15px;
+    flex-wrap: wrap;
 }
 
 .separator {
-    color: #3a4050;
-    font-weight: 300;
+    color: #4a5568;
 }
 
 .battery {
@@ -62,15 +63,11 @@ body {
     color: #ffaa00;
 }
 
-.failsafe, .system {
-    color: #e0e0e0;
-}
-
 .ok-badge {
-    background-color: #2a7a3a;
+    background: linear-gradient(135deg, #2a7a3a 0%, #1e5e2a 100%);
     color: white;
-    padding: 2px 8px;
-    border-radius: 4px;
+    padding: 4px 10px;
+    border-radius: 20px;
     font-size: 12px;
     font-weight: 600;
     margin-left: 4px;
@@ -79,124 +76,169 @@ body {
 /* Main Grid Layout */
 .main-grid {
     display: grid;
-    grid-template-columns: 200px 1fr 250px;
+    grid-template-columns: 250px 1fr 280px;
     gap: 20px;
-    height: 600px;
+    height: 700px;
 }
 
 /* Left Panel */
 .left-panel {
-    background-color: #1a1e2a;
-    border-radius: 8px;
+    background: linear-gradient(135deg, #1a1e2a 0%, #151925 100%);
+    border-radius: 12px;
     padding: 20px;
-    border: 1px solid #2a2f3a;
+    border: 1px solid #334155;
 }
 
 .quick-goal-box {
-    background-color: #0f1219;
-    border-radius: 8px;
+    background: linear-gradient(135deg, #0f1219 0%, #0a0c14 100%);
+    border-radius: 12px;
     padding: 20px;
     text-align: center;
-    border: 1px solid #3a4050;
+    border: 1px solid #4a9eff;
+    box-shadow: 0 0 20px rgba(74, 158, 255, 0.2);
 }
 
 .quick-goal-title {
     color: #8a9bb5;
     font-size: 14px;
-    margin-bottom: 15px;
-    letter-spacing: 1px;
+    margin-bottom: 10px;
+    letter-spacing: 2px;
 }
 
 .quick-goal-value {
     color: #4a9eff;
-    font-size: 48px;
+    font-size: 56px;
     font-weight: bold;
-    text-shadow: 0 0 10px rgba(74, 158, 255, 0.3);
+    text-shadow: 0 0 20px rgba(74, 158, 255, 0.5);
 }
 
 /* Center Panel */
 .center-panel {
     background-color: #1a1e2a;
-    border-radius: 8px;
+    border-radius: 12px;
     overflow: hidden;
-    border: 1px solid #2a2f3a;
-    display: flex;
-    flex-direction: column;
-}
-
-/* View Toggle Buttons */
-.view-toggle {
-    display: flex;
-    gap: 2px;
-    background-color: #0f1219;
-    padding: 10px;
-    border-bottom: 1px solid #2a2f3a;
-}
-
-.toggle-btn {
-    flex: 1;
-    background-color: transparent;
-    border: 1px solid #3a4050;
-    color: #8a9bb5;
-    padding: 10px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: all 0.2s ease;
-}
-
-.toggle-btn i {
-    font-size: 16px;
-}
-
-.toggle-btn.active {
-    background-color: #4a9eff;
-    border-color: #4a9eff;
-    color: white;
-}
-
-.toggle-btn:hover:not(.active) {
-    border-color: #4a9eff;
-    color: #4a9eff;
-}
-
-/* View Containers */
-.view-container {
-    flex: 1;
-    display: none;
+    border: 1px solid #334155;
     position: relative;
+    transition: all 0.3s ease;
 }
 
-.view-container.active {
+/* Main View (बड़ा) */
+.view-main {
+    width: 100%;
+    height: 100%;
     display: flex;
     flex-direction: column;
+    transition: all 0.3s ease;
+}
+
+.view-main.swapped {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 320px;
+    height: 200px;
+    z-index: 10;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    border: 2px solid #4a9eff;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* Pip View (छोटा) */
+.view-pip {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 320px;
+    height: 200px;
+    background: #1a1e2a;
+    border: 2px solid #4a9eff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    z-index: 20;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.view-pip.swapped {
+    position: relative;
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    border-width: 3px;
+    z-index: 30;
+}
+
+.view-pip:hover {
+    transform: scale(1.02);
+    border-color: #00ff88;
 }
 
 .view-header {
-    background-color: #0f1219;
-    padding: 12px 20px;
-    color: #8a9bb5;
-    font-size: 14px;
-    border-bottom: 1px solid #2a2f3a;
+    background: linear-gradient(135deg, #0f1219 0%, #1a1e2a 100%);
+    padding: 15px 20px;
+    color: #e0e0e0;
+    font-size: 16px;
+    border-bottom: 1px solid #334155;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-.view-canvas {
+.view-header i {
+    color: #4a9eff;
+    margin-right: 8px;
+}
+
+.view-badge {
+    background: #4a9eff;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+}
+
+.view-content {
     flex: 1;
     background-color: #0a0c14;
     position: relative;
     overflow: hidden;
 }
 
-/* Camera View Styles */
-.camera-container {
-    flex: 1;
-    background-color: #000;
+/* Pip View Header */
+.pip-header {
+    background: linear-gradient(135deg, #0f1219 0%, #1a1e2a 100%);
+    padding: 8px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #334155;
+    font-size: 12px;
+    color: #e0e0e0;
+}
+
+.pip-header i {
+    color: #4a9eff;
+    margin-right: 5px;
+}
+
+.live-badge {
+    background: #ff4a4a;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: bold;
+    animation: pulse 1s infinite;
+}
+
+.pip-content {
     position: relative;
-    overflow: hidden;
+    width: 100%;
+    height: calc(100% - 35px);
+    background-color: #000;
 }
 
 #cameraFeed {
@@ -206,61 +248,55 @@ body {
     display: none;
 }
 
-.camera-placeholder {
+.pip-placeholder {
     width: 100%;
     height: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 15px;
+    gap: 10px;
     color: #8a9bb5;
     background-color: #0a0c14;
 }
 
-.camera-placeholder i {
-    font-size: 48px;
+.pip-placeholder i {
+    font-size: 32px;
     opacity: 0.5;
 }
 
-.camera-overlay {
+.pip-overlay {
     position: absolute;
-    top: 15px;
-    left: 15px;
+    top: 8px;
+    left: 8px;
     background-color: rgba(0, 0, 0, 0.6);
-    padding: 5px 12px;
+    padding: 4px 10px;
     border-radius: 20px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     border: 1px solid #ff4a4a;
 }
 
 .recording-dot {
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
     background-color: #ff4a4a;
     border-radius: 50%;
     animation: blink 1s infinite;
 }
 
-.live-text {
+.pip-time {
     color: white;
-    font-size: 12px;
-    font-weight: bold;
-}
-
-@keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
+    font-size: 11px;
 }
 
 /* Right Panel */
 .right-panel {
-    background-color: #1a1e2a;
-    border-radius: 8px;
+    background: linear-gradient(135deg, #1a1e2a 0%, #151925 100%);
+    border-radius: 12px;
     padding: 20px;
-    border: 1px solid #2a2f3a;
+    border: 1px solid #334155;
     display: flex;
     flex-direction: column;
     gap: 20px;
@@ -268,17 +304,17 @@ body {
 
 /* MODE Section */
 .mode-section {
-    background-color: #0f1219;
-    border-radius: 8px;
-    padding: 20px;
-    border: 1px solid #3a4050;
+    background: #0f1219;
+    border-radius: 12px;
+    padding: 15px;
+    border: 1px solid #334155;
 }
 
 .mode-title {
     color: #8a9bb5;
-    font-size: 14px;
-    margin-bottom: 15px;
-    letter-spacing: 1px;
+    font-size: 12px;
+    margin-bottom: 12px;
+    letter-spacing: 2px;
 }
 
 .mode-buttons {
@@ -289,10 +325,10 @@ body {
 .mode-btn {
     flex: 1;
     background-color: transparent;
-    border: 1px solid #3a4050;
+    border: 1px solid #334155;
     color: #8a9bb5;
     padding: 12px 0;
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
     font-size: 14px;
     font-weight: 600;
@@ -300,73 +336,101 @@ body {
 }
 
 .mode-btn.active {
-    background-color: #4a9eff;
+    background: linear-gradient(135deg, #4a9eff 0%, #2d7ae0 100%);
     border-color: #4a9eff;
     color: white;
-    box-shadow: 0 0 15px rgba(74, 158, 255, 0.3);
+    box-shadow: 0 0 20px rgba(74, 158, 255, 0.4);
 }
 
-.mode-btn:hover {
+/* Drive Controls */
+.drive-controls {
+    background: #0f1219;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #334155;
+}
+
+.control-row {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin: 10px 0;
+}
+
+.control-btn {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #2a2f3a 0%, #1a1e2a 100%);
+    border: 2px solid #334155;
+    border-radius: 50%;
+    color: #e0e0e0;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.control-btn:hover {
     border-color: #4a9eff;
     color: #4a9eff;
+    transform: scale(1.1);
+}
+
+.stop-btn {
+    width: 80px;
+    border-radius: 40px;
+    background: linear-gradient(135deg, #ff4a4a 0%, #d63030 100%);
+    border-color: #ff4a4a;
+    color: white;
 }
 
 /* Action Buttons */
 .action-buttons {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 10px;
 }
 
 .action-btn {
     width: 100%;
-    padding: 16px;
+    padding: 15px;
     border: none;
-    border-radius: 8px;
+    border-radius: 10px;
     font-size: 16px;
     font-weight: bold;
     cursor: pointer;
     transition: all 0.2s ease;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
 }
 
 .action-btn.initiate {
-    background-color: #4a9eff;
+    background: linear-gradient(135deg, #00c853 0%, #00a86b 100%);
     color: white;
-    box-shadow: 0 4px 15px rgba(74, 158, 255, 0.3);
 }
 
-.action-btn.initiate:hover {
-    background-color: #2d7ae0;
-    transform: translateY(-2px);
-}
-
-.action-btn.stop {
-    background-color: #ff4a4a;
+.action-btn.emergency {
+    background: linear-gradient(135deg, #ff4a4a 0%, #d63030 100%);
     color: white;
-    box-shadow: 0 4px 15px rgba(255, 74, 74, 0.3);
-}
-
-.action-btn.stop:hover {
-    background-color: #e02d2d;
-    transform: translateY(-2px);
 }
 
 /* Camera Controls */
 .camera-controls {
     display: flex;
     gap: 10px;
-    margin-top: 10px;
 }
 
-.camera-control-btn {
+.camera-btn {
     flex: 1;
-    background-color: #0f1219;
-    border: 1px solid #3a4050;
+    background: #0f1219;
+    border: 1px solid #334155;
     color: #8a9bb5;
-    padding: 10px;
-    border-radius: 6px;
+    padding: 12px;
+    border-radius: 8px;
     cursor: pointer;
     font-size: 12px;
     display: flex;
@@ -376,26 +440,259 @@ body {
     transition: all 0.2s ease;
 }
 
-.camera-control-btn:hover {
+.camera-btn:hover {
     border-color: #4a9eff;
     color: #4a9eff;
 }
 
-/* Responsive Design */
-@media (max-width: 1000px) {
-    .main-grid {
-        grid-template-columns: 1fr;
-        height: auto;
+/* Swap Hint */
+.swap-hint {
+    background: #0f1219;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #4a9eff;
+    font-size: 12px;
+}
+
+.swap-hint i {
+    font-size: 14px;
+    animation: rotate 2s infinite;
+}
+
+/* Animations */
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+@keyframes rotate {
+    0% { transform: rotate(0deg); }
+    50% { transform: rotate(180deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Click cursor */
+.view-pip, .view-main {
+    cursor: pointer;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .view-pip, .view-main.swapped {
+        width: 260px;
+        height: 160px;
     }
-    
-    .status-bar {
-        flex-direction: column;
-        gap: 10px;
-        text-align: center;
+}
+/* Add/Replace these classes in your CSS */
+
+/* Center Panel */
+.center-panel {
+    background-color: #1a1e2a;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #334155;
+    position: relative;
+    min-height: 500px;
+}
+
+/* Main View (बड़ा) - Default */
+.view-main {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 5;
+}
+
+/* Main View जब Swapped हो (छोटा हो जाता है) */
+.view-main.swapped {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 320px;
+    height: 200px;
+    z-index: 10;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    border: 2px solid #4a9eff;
+    border-radius: 12px;
+    overflow: hidden;
+    animation: pipAppear 0.3s ease;
+}
+
+/* Pip View (छोटा) - Default */
+.view-pip {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 320px;
+    height: 200px;
+    background: #1a1e2a;
+    border: 2px solid #4a9eff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    z-index: 20;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+/* Pip View जब Swapped हो (बड़ा हो जाता है) */
+.view-pip.swapped {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-width: 3px;
+    z-index: 25;
+    bottom: auto;
+    right: auto;
+    animation: fullscreenAppear 0.3s ease;
+}
+
+/* Hover effect only when not swapped */
+.view-pip:not(.swapped):hover {
+    transform: scale(1.02);
+    border-color: #00ff88;
+}
+
+/* Ensure content fills properly */
+.view-content, .pip-content {
+    width: 100%;
+    height: calc(100% - 40px); /* Adjust for header */
+    position: relative;
+    overflow: hidden;
+}
+
+.view-content canvas, .pip-content video {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover;
+}
+
+/* Header styles */
+.view-header, .pip-header {
+    height: 40px;
+    padding: 0 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(135deg, #0f1219 0%, #1a1e2a 100%);
+    border-bottom: 1px solid #334155;
+    color: #e0e0e0;
+    font-size: 14px;
+}
+/* Add these to your existing CSS */
+
+/* Ensure containers have proper dimensions */
+.view-content, .pip-content {
+    width: 100%;
+    height: calc(100% - 40px);
+    position: relative;
+    overflow: hidden;
+    background-color: #000;
+}
+
+/* Make sure canvas and video fill containers properly */
+.view-content canvas, 
+.pip-content canvas,
+.view-content video, 
+.pip-content video {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    display: block;
+}
+
+/* Fix for swapped states */
+.view-main.swapped {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 320px;
+    height: 200px;
+    z-index: 10;
+}
+
+.view-pip.swapped {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    z-index: 20;
+}
+
+/* Ensure overlays are visible */
+.pip-overlay {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    z-index: 30;
+    background-color: rgba(0, 0, 0, 0.6);
+    padding: 4px 10px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid #ff4a4a;
+    pointer-events: none;
+}
+
+/* Camera feed always visible */
+#cameraFeed {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Animations */
+@keyframes pipAppear {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
     }
-    
-    .status-right {
-        flex-wrap: wrap;
-        justify-content: center;
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes fullscreenAppear {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .view-main.swapped, .view-pip:not(.swapped) {
+        width: 260px;
+        height: 160px;
+        bottom: 15px;
+        right: 15px;
+    }
+}
+
+@media (max-width: 768px) {
+    .view-main.swapped, .view-pip:not(.swapped) {
+        width: 200px;
+        height: 130px;
+        bottom: 10px;
+        right: 10px;
     }
 }

@@ -4,41 +4,50 @@ class InsightDashboard {
         this.initializeEventListeners();
         this.initialize3DMap();
         this.initializeCamera();
+        this.initializeTimeUpdate();
         this.currentMode = 'auto';
-        this.currentView = 'map'; // 'map' or 'camera'
         this.cameraStream = null;
+        this.isSwapped = false; // false = MAP main, CAMERA pip
     }
 
     initializeElements() {
         // Mode buttons
         this.modeButtons = document.querySelectorAll('.mode-btn');
-        this.autoBtn = document.querySelector('[data-mode="auto"]');
-        this.manualBtn = document.querySelector('[data-mode="manual"]');
+
+        // Drive controls
+        this.forwardBtn = document.getElementById('forwardBtn');
+        this.backwardBtn = document.getElementById('backwardBtn');
+        this.leftBtn = document.getElementById('leftBtn');
+        this.rightBtn = document.getElementById('rightBtn');
+        this.stopBtn = document.getElementById('stopBtn');
 
         // Action buttons
         this.initiateBtn = document.getElementById('initiateBtn');
-        this.stopBtn = document.getElementById('stopBtn');
+        this.emergencyBtn = document.getElementById('emergencyBtn');
 
-        // View toggle buttons
-        this.mapViewBtn = document.getElementById('mapViewBtn');
-        this.cameraViewBtn = document.getElementById('cameraViewBtn');
-
-        // View containers
-        this.mapView = document.getElementById('mapView');
-        this.cameraView = document.getElementById('cameraView');
+        // View elements
+        this.viewMain = document.getElementById('viewMain');
+        this.viewPip = document.getElementById('viewPip');
+        this.mainTitle = document.getElementById('mainTitle');
+        this.pipTitle = document.getElementById('pipTitle');
+        this.mainBadge = document.getElementById('mainBadge');
 
         // Camera elements
         this.cameraFeed = document.getElementById('cameraFeed');
         this.cameraPlaceholder = document.getElementById('cameraPlaceholder');
-        this.takeSnapshotBtn = document.getElementById('takeSnapshotBtn');
+        this.snapshotBtn = document.getElementById('snapshotBtn');
         this.toggleCameraBtn = document.getElementById('toggleCameraBtn');
-        this.cameraControls = document.getElementById('cameraControls');
+        this.cameraTime = document.getElementById('cameraTime');
 
-        // Quick goal display
+        // Quick goal
         this.quickGoalValue = document.querySelector('.quick-goal-value');
 
-        // 3D canvas
-        this.canvasContainer = document.getElementById('pointCloudCanvas');
+        // Center panel
+        this.centerPanel = document.getElementById('centerPanel');
+
+        // Content containers (important)
+        this.mainContent = document.querySelector('.view-main .view-content');
+        this.pipContent = document.querySelector('.view-pip .pip-content');
     }
 
     initializeEventListeners() {
@@ -47,90 +56,166 @@ class InsightDashboard {
             btn.addEventListener('click', (e) => this.switchMode(e));
         });
 
-        // Action buttons
-        this.initiateBtn.addEventListener('click', () => this.initiateMission());
-        this.stopBtn.addEventListener('click', () => this.stopMission());
+        // Drive controls
+        this.forwardBtn?.addEventListener('click', () => this.moveCar('forward'));
+        this.backwardBtn?.addEventListener('click', () => this.moveCar('backward'));
+        this.leftBtn?.addEventListener('click', () => this.moveCar('left'));
+        this.rightBtn?.addEventListener('click', () => this.moveCar('right'));
+        this.stopBtn?.addEventListener('click', () => this.stopCar());
 
-        // View toggle
-        this.mapViewBtn.addEventListener('click', () => this.switchView('map'));
-        this.cameraViewBtn.addEventListener('click', () => this.switchView('camera'));
+        // Action buttons
+        this.initiateBtn?.addEventListener('click', () => this.initiateMission());
+        this.emergencyBtn?.addEventListener('click', () => this.emergencyStop());
 
         // Camera controls
-        if (this.takeSnapshotBtn) {
-            this.takeSnapshotBtn.addEventListener('click', () => this.takeSnapshot());
-        }
-        if (this.toggleCameraBtn) {
-            this.toggleCameraBtn.addEventListener('click', () => this.toggleCameraDevice());
-        }
+        this.snapshotBtn?.addEventListener('click', () => this.takeSnapshot());
+        this.toggleCameraBtn?.addEventListener('click', () => this.toggleCamera());
+
+        // Click to swap views (main aur pip dono par)
+        this.viewMain.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.swapViews();
+        });
+
+        this.viewPip.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.swapViews();
+        });
 
         // Window resize
         window.addEventListener('resize', () => this.handleResize());
     }
 
-    switchView(view) {
-        this.currentView = view;
+    // =========================
+    // PIP / MAIN SWAP LOGIC - PERFECT FIX
+    // =========================
+    swapViews() {
+        // flip state
+        this.isSwapped = !this.isSwapped;
 
-        // Update toggle buttons
-        if (view === 'map') {
-            this.mapViewBtn.classList.add('active');
-            this.cameraViewBtn.classList.remove('active');
-            this.mapView.classList.add('active');
-            this.cameraView.classList.remove('active');
-            this.cameraControls.style.display = 'none';
+        if (!this.renderer || !this.cameraFeed) return;
 
-            // Resume 3D animation
-            if (this.pointCloud) {
-                this.isAnimating = true;
-            }
+        const mapCanvas = this.renderer.domElement;
+
+        // Clear both containers completely
+        this.mainContent.innerHTML = '';
+        this.pipContent.innerHTML = '';
+
+        if (this.isSwapped) {
+            // MAIN = CAMERA (full), PIP = MAP
+            this.mainTitle.innerHTML = '<i class="fas fa-video"></i> Camera View';
+            this.pipTitle.innerHTML = '<i class="fas fa-map"></i> Map View';
+            this.mainBadge.textContent = 'CAMERA';
+
+            // Camera ko main me daalo (bada)
+            this.mainContent.appendChild(this.cameraFeed);
+            this.cameraFeed.style.display = 'block';
+            this.cameraFeed.style.width = '100%';
+            this.cameraFeed.style.height = '100%';
+            this.cameraFeed.style.objectFit = 'cover';
+
+            // Camera overlay for main
+            const mainOverlay = document.createElement('div');
+            mainOverlay.className = 'pip-overlay';
+            mainOverlay.id = 'mainCameraOverlay';
+            mainOverlay.innerHTML = `
+                <span class="recording-dot"></span>
+                <span class="pip-time" id="cameraTime"></span>
+            `;
+            this.mainContent.appendChild(mainOverlay);
+            this.cameraTime = document.getElementById('cameraTime');
+
+            // Map ko pip me daalo (chhota)
+            this.pipContent.appendChild(mapCanvas);
+            mapCanvas.style.width = '100%';
+            mapCanvas.style.height = '100%';
+            mapCanvas.style.objectFit = 'cover';
+
+            // Map overlay for pip
+            const pipOverlay = document.createElement('div');
+            pipOverlay.className = 'pip-overlay';
+            pipOverlay.id = 'pipMapOverlay';
+            pipOverlay.style.backgroundColor = 'rgba(74, 158, 255, 0.9)';
+            pipOverlay.style.borderColor = '#4a9eff';
+            pipOverlay.style.color = 'white';
+            pipOverlay.innerHTML = 'MAP';
+            this.pipContent.appendChild(pipOverlay);
+
         } else {
-            this.cameraViewBtn.classList.add('active');
-            this.mapViewBtn.classList.remove('active');
-            this.cameraView.classList.add('active');
-            this.mapView.classList.remove('active');
-            this.cameraControls.style.display = 'flex';
+            // MAIN = MAP (full), PIP = CAMERA
+            this.mainTitle.innerHTML = '<i class="fas fa-map"></i> Map View';
+            this.pipTitle.innerHTML = '<i class="fas fa-video"></i> Camera View';
+            this.mainBadge.textContent = 'MAP';
 
-            // Pause 3D animation to save resources
-            this.isAnimating = false;
+            // Map ko main me daalo (bada)
+            this.mainContent.appendChild(mapCanvas);
+            mapCanvas.style.width = '100%';
+            mapCanvas.style.height = '100%';
+            mapCanvas.style.objectFit = 'cover';
 
-            // Start camera if not already active
-            this.startCamera();
+            // Camera ko pip me daalo (chhota)
+            this.pipContent.appendChild(this.cameraFeed);
+            this.cameraFeed.style.display = 'block';
+            this.cameraFeed.style.width = '100%';
+            this.cameraFeed.style.height = '100%';
+            this.cameraFeed.style.objectFit = 'cover';
+
+            // Camera overlay for pip
+            const pipOverlay = document.createElement('div');
+            pipOverlay.className = 'pip-overlay';
+            pipOverlay.id = 'pipCameraOverlay';
+            pipOverlay.innerHTML = `
+                <span class="recording-dot"></span>
+                <span class="pip-time" id="cameraTime"></span>
+            `;
+            this.pipContent.appendChild(pipOverlay);
+            this.cameraTime = document.getElementById('cameraTime');
         }
+
+        // styling flags
+        if (this.isSwapped) {
+            this.viewMain.classList.add('swapped');
+            this.viewPip.classList.add('swapped');
+        } else {
+            this.viewMain.classList.remove('swapped');
+            this.viewPip.classList.remove('swapped');
+        }
+
+        // Resize map canvas after layout change
+        setTimeout(() => this.handleResize(), 100);
+        setTimeout(() => this.handleResize(), 300);
+
+        // Force camera to play
+        if (this.cameraStream) {
+            this.cameraFeed.play().catch(e => console.log('Play error:', e));
+        }
+
+        this.showNotification(`Swapped to ${this.isSwapped ? 'CAMERA' : 'MAP'} view`);
     }
 
     switchMode(event) {
         const btn = event.currentTarget;
-
-        // Remove active class from all buttons
         this.modeButtons.forEach(b => b.classList.remove('active'));
-
-        // Add active class to clicked button
         btn.classList.add('active');
-
-        // Update current mode
         this.currentMode = btn.dataset.mode;
 
-        // Update quick goal value based on mode
-        if (this.currentMode === 'auto') {
-            this.quickGoalValue.textContent = '15';
-            this.quickGoalValue.style.color = '#4a9eff';
-        } else {
-            this.quickGoalValue.textContent = '08';
-            this.quickGoalValue.style.color = '#ffaa00';
-        }
+        this.quickGoalValue.textContent = this.currentMode === 'auto' ? '15' : '08';
+        this.quickGoalValue.style.color = this.currentMode === 'auto' ? '#4a9eff' : '#ffaa00';
 
         this.showNotification(`Mode: ${this.currentMode.toUpperCase()}`);
     }
 
+    // =========================
     // Camera Functions
+    // =========================
     async initializeCamera() {
-        // Check if camera is supported
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            this.cameraPlaceholder.innerHTML = `
-                <i class="fas fa-exclamation-triangle"></i>
-                <p>Camera not supported</p>
-            `;
+            this.showCameraError('Camera not supported');
             return;
         }
+
+        // Auto-start camera
+        setTimeout(() => this.startCamera(), 1000);
     }
 
     async startCamera(facingMode = 'environment') {
@@ -138,9 +223,6 @@ class InsightDashboard {
             if (this.cameraStream) {
                 this.stopCamera();
             }
-
-            this.cameraPlaceholder.style.display = 'flex';
-            this.cameraFeed.style.display = 'none';
 
             const stream = await navigator.mediaDevices.getUserMedia({
                 video: {
@@ -153,40 +235,58 @@ class InsightDashboard {
             this.cameraStream = stream;
             this.cameraFeed.srcObject = stream;
 
-            // Wait for video to be ready
             this.cameraFeed.onloadedmetadata = () => {
-                this.cameraFeed.play();
-                this.cameraFeed.style.display = 'block';
-                this.cameraPlaceholder.style.display = 'none';
-                this.showNotification('Camera feed active');
+                this.cameraFeed.play()
+                    .then(() => {
+                        this.cameraFeed.style.display = 'block';
+                        if (this.cameraPlaceholder) {
+                            this.cameraPlaceholder.style.display = 'none';
+                        }
+                        this.showNotification('Camera ready');
+                    })
+                    .catch(err => {
+                        console.error('Play error:', err);
+                        this.showCameraError('Camera play failed');
+                    });
             };
         } catch (err) {
             console.error('Camera error:', err);
+            this.showCameraError('Camera access denied');
+        }
+    }
+
+    showCameraError(message) {
+        if (this.cameraPlaceholder) {
             this.cameraPlaceholder.innerHTML = `
                 <i class="fas fa-exclamation-triangle"></i>
-                <p>Camera access denied</p>
+                <span>${message}</span>
             `;
+            this.cameraPlaceholder.style.display = 'flex';
         }
     }
 
     stopCamera() {
         if (this.cameraStream) {
-            this.cameraStream.getTracks().forEach(track => track.stop());
+            this.cameraStream.getTracks().forEach(track => {
+                track.stop();
+                track.enabled = false;
+            });
             this.cameraStream = null;
         }
     }
 
-    toggleCameraDevice() {
-        // Toggle between front and back camera
+    toggleCamera() {
         const currentFacing = this.cameraStream?.getVideoTracks()[0]?.getSettings().facingMode;
         const newFacing = currentFacing === 'environment' ? 'user' : 'environment';
         this.startCamera(newFacing);
     }
 
     takeSnapshot() {
-        if (!this.cameraStream) return;
+        if (!this.cameraStream || !this.cameraFeed.videoWidth) {
+            this.showNotification('Camera not ready');
+            return;
+        }
 
-        // Create canvas and capture frame
         const canvas = document.createElement('canvas');
         canvas.width = this.cameraFeed.videoWidth;
         canvas.height = this.cameraFeed.videoHeight;
@@ -194,176 +294,269 @@ class InsightDashboard {
         const ctx = canvas.getContext('2d');
         ctx.drawImage(this.cameraFeed, 0, 0, canvas.width, canvas.height);
 
-        // Convert to image and download
         const image = canvas.toDataURL('image/png');
         const link = document.createElement('a');
-        link.download = `snapshot-${Date.now()}.png`;
+        link.download = `car-cam-${Date.now()}.png`;
         link.href = image;
         link.click();
 
-        this.showNotification('Snapshot saved!');
+        this.showNotification('📸 Snapshot saved!');
     }
 
+    initializeTimeUpdate() {
+        setInterval(() => {
+            if (this.cameraTime) {
+                const now = new Date();
+                this.cameraTime.textContent = now.toLocaleTimeString('en-US', {
+                    hour12: false,
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+            }
+        }, 1000);
+    }
+
+    // =========================
     // 3D Map Functions
+    // =========================
     initialize3DMap() {
-        // Scene setup
+        // Scene
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color(0x0a0c14);
 
-        // Camera setup
-        const width = this.canvasContainer.clientWidth;
-        const height = this.canvasContainer.clientHeight;
+        // Camera
+        const width = this.mainContent.clientWidth || 800;
+        const height = this.mainContent.clientHeight || 450;
 
-        this.camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000);
-        this.camera.position.set(5, 3, 8);
-        this.camera.lookAt(0, 0, 0);
+        this.mapCamera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000);
+        this.mapCamera.position.set(10, 8, 15);
+        this.mapCamera.lookAt(0, 0, 0);
 
-        // Renderer setup
+        // Renderer
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
         this.renderer.setSize(width, height);
         this.renderer.setPixelRatio(window.devicePixelRatio);
-        this.canvasContainer.appendChild(this.renderer.domElement);
+        this.renderer.shadowMap.enabled = true;
+        this.mainContent.appendChild(this.renderer.domElement);
 
         // Lights
         const ambientLight = new THREE.AmbientLight(0x404060);
         this.scene.add(ambientLight);
 
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-        directionalLight.position.set(1, 2, 1);
-        this.scene.add(directionalLight);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+        dirLight.position.set(5, 10, 7);
+        dirLight.castShadow = true;
+        this.scene.add(dirLight);
 
         const backLight = new THREE.DirectionalLight(0x4466aa, 0.5);
-        backLight.position.set(-1, -1, -1);
+        backLight.position.set(-5, 5, -5);
         this.scene.add(backLight);
 
-        // Create terrain
-        this.createTerrain();
-
-        // Create point cloud
-        this.createPointCloud();
-
-        // Add axes helper
-        const axesHelper = new THREE.AxesHelper(3);
-        this.scene.add(axesHelper);
+        // Environment
+        this.createGround();
+        this.createRoad();
+        this.createBuildings();
+        this.createCar();
 
         // Start animation
-        this.isAnimating = true;
         this.animate();
+
+        // Ensure correct initial sizing once layout is stable
+        setTimeout(() => this.handleResize(), 0);
     }
 
-    createTerrain() {
-        // Grid ground
-        const gridHelper = new THREE.GridHelper(15, 20, 0x4a9eff, 0x2a3a5a);
-        gridHelper.position.y = -0.5;
+    createGround() {
+        const gridHelper = new THREE.GridHelper(30, 30, 0x4a9eff, 0x2a3a5a);
+        gridHelper.position.y = -0.01;
         this.scene.add(gridHelper);
 
-        // Random terrain features
-        const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
-        const material = new THREE.MeshStandardMaterial({ color: 0x4a9eff, emissive: 0x112233 });
+        const groundGeometry = new THREE.PlaneGeometry(30, 30);
+        const groundMaterial = new THREE.MeshStandardMaterial({
+            color: 0x1a1e2a,
+            roughness: 0.8,
+            metalness: 0.2
+        });
+        const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+        ground.rotation.x = -Math.PI / 2;
+        ground.position.y = 0;
+        ground.receiveShadow = true;
+        this.scene.add(ground);
+    }
 
-        for (let i = 0; i < 20; i++) {
-            const cube = new THREE.Mesh(geometry, material);
-            const x = (Math.random() - 0.5) * 8;
-            const z = (Math.random() - 0.5) * 8;
-            cube.position.set(x, 0, z);
-            cube.scale.set(1, Math.random() * 2 + 0.5, 1);
-            this.scene.add(cube);
+    createRoad() {
+        const roadMaterial = new THREE.MeshStandardMaterial({ color: 0x2a2f3a });
+
+        const road = new THREE.Mesh(
+            new THREE.PlaneGeometry(8, 30),
+            roadMaterial
+        );
+        road.rotation.x = -Math.PI / 2;
+        road.position.y = 0.01;
+        road.receiveShadow = true;
+        this.scene.add(road);
+
+        const lineMaterial = new THREE.MeshStandardMaterial({ color: 0xffaa00 });
+        for (let i = -14; i <= 14; i += 4) {
+            const line = new THREE.Mesh(
+                new THREE.BoxGeometry(0.2, 0.05, 2),
+                lineMaterial
+            );
+            line.position.set(0, 0.02, i);
+            line.receiveShadow = true;
+            this.scene.add(line);
         }
     }
 
-    createPointCloud() {
-        const geometry = new THREE.BufferGeometry();
-        const count = 2000;
+    createBuildings() {
+        const buildingColors = [0x4a9eff, 0xffaa00, 0x44aa88, 0xaa66cc];
 
-        const positions = new Float32Array(count * 3);
-        const colors = new Float32Array(count * 3);
+        for (let i = 0; i < 10; i++) {
+            const width = 1 + Math.random() * 2;
+            const depth = 1 + Math.random() * 2;
+            const height = 2 + Math.random() * 4;
 
-        for (let i = 0; i < count; i++) {
-            const r = 3 + Math.random() * 2;
-            const theta = Math.random() * Math.PI * 2;
-            const phi = Math.acos(2 * Math.random() - 1);
+            const building = new THREE.Mesh(
+                new THREE.BoxGeometry(width, height, depth),
+                new THREE.MeshStandardMaterial({
+                    color: buildingColors[Math.floor(Math.random() * buildingColors.length)],
+                    emissive: 0x112233
+                })
+            );
 
-            const x = r * Math.sin(phi) * Math.cos(theta);
-            const y = r * Math.sin(phi) * Math.sin(theta) * 0.5;
-            const z = r * Math.cos(phi);
+            const x = (Math.random() > 0.5 ? 1 : -1) * (5 + Math.random() * 3);
+            const z = (Math.random() - 0.5) * 20;
 
-            positions[i * 3] = x;
-            positions[i * 3 + 1] = y;
-            positions[i * 3 + 2] = z;
-
-            const color = new THREE.Color();
-            const hue = 0.6 + (y + 2) * 0.1;
-            color.setHSL(hue, 0.8, 0.5);
-
-            colors[i * 3] = color.r;
-            colors[i * 3 + 1] = color.g;
-            colors[i * 3 + 2] = color.b;
+            building.position.set(x, height / 2, z);
+            building.castShadow = true;
+            building.receiveShadow = true;
+            this.scene.add(building);
         }
+    }
 
-        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    createCar() {
+        const bodyGeo = new THREE.BoxGeometry(2, 0.8, 4);
+        const bodyMat = new THREE.MeshStandardMaterial({ color: 0xff4a4a, emissive: 0x331100 });
+        this.carBody = new THREE.Mesh(bodyGeo, bodyMat);
+        this.carBody.position.set(0, 0.4, 0);
+        this.carBody.castShadow = true;
+        this.carBody.receiveShadow = true;
+        this.scene.add(this.carBody);
 
-        const material = new THREE.PointsMaterial({
-            size: 0.1,
-            vertexColors: true,
-            transparent: true,
-            opacity: 0.9,
-            blending: THREE.AdditiveBlending
+        const roofGeo = new THREE.BoxGeometry(1.2, 0.4, 2);
+        const roofMat = new THREE.MeshStandardMaterial({ color: 0xcccccc });
+        this.carRoof = new THREE.Mesh(roofGeo, roofMat);
+        this.carRoof.position.set(0, 1.0, -0.2);
+        this.carRoof.castShadow = true;
+        this.carRoof.receiveShadow = true;
+        this.scene.add(this.carRoof);
+
+        const wheelGeo = new THREE.CylinderGeometry(0.5, 0.5, 0.5, 16);
+        const wheelMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
+
+        this.wheels = [];
+        const wheelPositions = [
+            [-1, 0.3, -1.2], [1, 0.3, -1.2],
+            [-1, 0.3, 1.2], [1, 0.3, 1.2]
+        ];
+
+        wheelPositions.forEach(pos => {
+            const wheel = new THREE.Mesh(wheelGeo, wheelMat);
+            wheel.rotation.z = Math.PI / 2;
+            wheel.position.set(pos[0], pos[1], pos[2]);
+            wheel.castShadow = true;
+            wheel.receiveShadow = true;
+            this.scene.add(wheel);
+            this.wheels.push(wheel);
         });
 
-        this.pointCloud = new THREE.Points(geometry, material);
-        this.scene.add(this.pointCloud);
+        this.carGroup = new THREE.Group();
+        this.carGroup.add(this.carBody);
+        this.carGroup.add(this.carRoof);
+        this.wheels.forEach(wheel => this.carGroup.add(wheel));
 
-        // Add wireframe sphere
-        const sphereGeometry = new THREE.SphereGeometry(4, 16, 16);
-        const sphereMaterial = new THREE.MeshBasicMaterial({
-            color: 0x4a9eff,
-            wireframe: true,
-            transparent: true,
-            opacity: 0.1
+        this.scene.add(this.carGroup);
+    }
+
+    moveCar(direction) {
+        const speed = 0.5;
+
+        switch (direction) {
+            case 'forward':
+                this.carGroup.position.z -= speed;
+                break;
+            case 'backward':
+                this.carGroup.position.z += speed;
+                break;
+            case 'left':
+                this.carGroup.position.x -= speed;
+                break;
+            case 'right':
+                this.carGroup.position.x += speed;
+                break;
+        }
+
+        this.wheels.forEach(wheel => {
+            wheel.rotation.x += 0.2;
         });
-        const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-        sphere.position.y = 0;
-        this.scene.add(sphere);
+
+        this.showNotification(`Car moving ${direction}`);
     }
 
-    animate() {
-        requestAnimationFrame(() => this.animate());
-
-        // Only animate if map view is active
-        if (this.isAnimating && this.pointCloud) {
-            this.pointCloud.rotation.y += 0.001;
-            this.pointCloud.rotation.x += 0.0005;
-        }
-
-        if (this.renderer && this.scene && this.camera) {
-            this.renderer.render(this.scene, this.camera);
-        }
+    stopCar() {
+        this.showNotification('Car stopped');
     }
 
-    // Mission Controls
     initiateMission() {
         this.initiateBtn.classList.add('active');
-        this.showNotification('Mission Initiated!');
-
+        this.showNotification('🚗 Mission started!');
         setTimeout(() => {
             this.initiateBtn.classList.remove('active');
         }, 1000);
     }
 
-    stopMission() {
-        this.showNotification('Mission Stopped!');
-        this.quickGoalValue.textContent = '00';
+    emergencyStop() {
+        this.emergencyBtn.classList.add('active');
+        this.showNotification('⚠️ EMERGENCY STOP!');
+        setTimeout(() => {
+            this.emergencyBtn.classList.remove('active');
+        }, 1000);
+    }
+
+    animate() {
+        requestAnimationFrame(() => this.animate());
+
+        if (this.currentMode === 'auto' && this.carGroup) {
+            this.carGroup.position.z -= 0.02;
+
+            if (this.carGroup.position.z < -15) {
+                this.carGroup.position.z = 15;
+            }
+
+            this.wheels.forEach(wheel => {
+                wheel.rotation.x += 0.05;
+            });
+        }
+
+        if (this.renderer && this.scene && this.mapCamera) {
+            this.renderer.render(this.scene, this.mapCamera);
+        }
     }
 
     handleResize() {
-        if (!this.camera || !this.renderer) return;
+        if (!this.mapCamera || !this.renderer) return;
 
-        const width = this.canvasContainer.clientWidth;
-        const height = this.canvasContainer.clientHeight;
+        const canvas = this.renderer.domElement;
+        const parent = canvas.parentElement;
+        if (!parent) return;
 
-        this.camera.aspect = width / height;
-        this.camera.updateProjectionMatrix();
+        const width = parent.clientWidth;
+        const height = parent.clientHeight;
+
+        if (width <= 0 || height <= 0) return;
+
+        this.mapCamera.aspect = width / height;
+        this.mapCamera.updateProjectionMatrix();
         this.renderer.setSize(width, height);
     }
 
@@ -376,20 +569,36 @@ class InsightDashboard {
         notification.style.transform = 'translateX(-50%)';
         notification.style.backgroundColor = '#4a9eff';
         notification.style.color = 'white';
-        notification.style.padding = '10px 20px';
-        notification.style.borderRadius = '5px';
+        notification.style.padding = '12px 24px';
+        notification.style.borderRadius = '30px';
         notification.style.zIndex = '9999';
-        notification.style.boxShadow = '0 2px 10px rgba(0,0,0,0.3)';
+        notification.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)';
+        notification.style.fontWeight = 'bold';
+        notification.style.animation = 'slideDown 0.3s ease';
 
         document.body.appendChild(notification);
 
         setTimeout(() => {
-            notification.remove();
+            notification.style.animation = 'slideUp 0.3s ease';
+            setTimeout(() => notification.remove(), 300);
         }, 2000);
     }
 }
 
-// Initialize when DOM is loaded
+// Initialize
 document.addEventListener('DOMContentLoaded', () => {
-    new InsightDashboard();
+    window.dashboard = new InsightDashboard();
+
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideDown {
+            from { transform: translate(-50%, -100%); opacity: 0; }
+            to { transform: translate(-50%, 0); opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translate(-50%, 0); opacity: 1; }
+            to { transform: translate(-50%, -100%); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
 });
