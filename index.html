@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insight.IO | Mission Control</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+
+<body>
+    <div class="dashboard">
+        <!-- Top Status Bar -->
+        <div class="status-bar">
+            <div class="status-left">
+                <span class="mission-name">Status On Mission 1234</span>
+            </div>
+            <div class="status-right">
+                <span class="battery">100%</span>
+                <span class="separator">|</span>
+                <span class="strong">Strong</span>
+                <span class="separator">|</span>
+                <span class="failsafe">Faisable</span>
+                <span class="ok-badge">Okay</span>
+                <span class="separator">|</span>
+                <span class="system">System</span>
+                <span class="ok-badge">Okay</span>
+            </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="main-grid">
+            <!-- Left Panel - QUICK GOAL -->
+            <div class="left-panel">
+                <div class="quick-goal-box">
+                    <div class="quick-goal-title">QUICK GOAL</div>
+                    <div class="quick-goal-value">15</div>
+                </div>
+            </div>
+
+            <!-- Center Panel - View Container (Switches between Camera and Map) -->
+            <div class="center-panel">
+                <!-- View Toggle Buttons -->
+                <div class="view-toggle">
+                    <button class="toggle-btn active" id="mapViewBtn">
+                        <i class="fas fa-map"></i> Map View
+                    </button>
+                    <button class="toggle-btn" id="cameraViewBtn">
+                        <i class="fas fa-camera"></i> Camera View
+                    </button>
+                </div>
+
+                <!-- Map View (Default) -->
+                <div class="view-container map-view active" id="mapView">
+                    <div class="view-header">Map View</div>
+                    <div id="pointCloudCanvas" class="view-canvas"></div>
+                </div>
+
+                <!-- Camera View (Hidden by default) -->
+                <div class="view-container camera-view" id="cameraView">
+                    <div class="view-header">Camera View</div>
+                    <div class="camera-container">
+                        <video id="cameraFeed" autoplay playsinline></video>
+                        <div class="camera-placeholder" id="cameraPlaceholder">
+                            <i class="fas fa-camera"></i>
+                            <p>Camera feed initializing...</p>
+                        </div>
+                        <div class="camera-overlay">
+                            <span class="recording-dot"></span>
+                            <span class="live-text">LIVE</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel - MODE and Controls -->
+            <div class="right-panel">
+                <!-- MODE Section -->
+                <div class="mode-section">
+                    <div class="mode-title">MODE</div>
+                    <div class="mode-buttons">
+                        <button class="mode-btn active" data-mode="auto">AUTO</button>
+                        <button class="mode-btn" data-mode="manual">MANUAL</button>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button class="action-btn initiate" id="initiateBtn">INITIATE</button>
+                    <button class="action-btn stop" id="stopBtn">STOP</button>
+                </div>
+
+                <!-- Additional Camera Controls (visible only in camera mode) -->
+                <div class="camera-controls" id="cameraControls" style="display: none;">
+                    <button class="camera-control-btn" id="takeSnapshotBtn">
+                        <i class="fas fa-camera"></i> Snapshot
+                    </button>
+                    <button class="camera-control-btn" id="toggleCameraBtn">
+                        <i class="fas fa-sync"></i> Switch Camera
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
